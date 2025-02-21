@@ -1,0 +1,31 @@
+{
+  "dependencies": {
+    "@expo/metro-runtime": "~4.0.1",
+    "@expo/vector-icons": "^14.0.4",
+    "@react-navigation/bottom-tabs": "^7.2.0",
+    "@react-navigation/drawer": "^7.1.1",
+    "@react-navigation/native": "^7.0.14",
+    "@react-navigation/stack": "^7.1.1",
+    "assert": "^2.1.0",
+    "buffer": "^6.0.3",
+    "crypto-browserify": "^3.12.1",
+    "events": "^3.3.0",
+    "expo": "^52.0.35",
+    "process": "^0.11.10",
+    "react-dom": "18.3.1",
+    "react-native": "^0.77.1",
+    "react-native-gesture-handler": "~2.14.0",
+    "react-native-reanimated": "~3.6.0",
+    "react-native-safe-area-context": "^5.2.0",
+    "react-native-screens": "^4.6.0",
+    "react-native-web": "~0.19.13",
+    "stream-browserify": "^3.0.0",
+    "util": "^0.12.5",
+    "vm-browserify": "^1.1.2"
+  },
+  "devDependencies": {
+    "@babel/preset-react": "^7.26.3",
+    "file-loader": "^6.2.0",
+    "webpack": "^5.98.0"
+  }
+}
