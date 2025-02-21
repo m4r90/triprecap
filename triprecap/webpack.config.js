@@ -2,7 +2,10 @@ const createExpoWebpackConfigAsync = require('@expo/webpack-config');
 const webpack = require('webpack');
 
 module.exports = async function (env, argv) {
-  const config = await createExpoWebpackConfigAsync(env, argv);
+  const config = await createExpoWebpackConfigAsync({
+    ...env,
+    favicon: false
+  }, argv);
   
   // Ajout des fallbacks pour les modules Node.js
   config.resolve.fallback = {

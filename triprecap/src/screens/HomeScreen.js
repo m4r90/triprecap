@@ -1,9 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Ionicons } from '@expo/vector-icons';
 
 const HomeScreen = () => {
   const [sketchbooks, setSketchbooks] = useState([]);
   const [error, setError] = useState(null);
+  const navigation = useNavigation();
 
   useEffect(() => {
     fetchSketchbooks();
@@ -42,6 +48,12 @@ const HomeScreen = () => {
           </View>
         )}
       />
+      <TouchableOpacity 
+        style={styles.newButton}
+        onPress={() => navigation.navigate('Canvas')}
+      >
+        <Text style={styles.buttonText}>Create New Sketchbook</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -82,6 +94,18 @@ const styles = StyleSheet.create({
   date: {
     color: '#666',
     marginTop: 5,
+  },
+  newButton: {
+    backgroundColor: '#007bff',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
 

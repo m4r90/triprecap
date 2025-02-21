@@ -5,18 +5,19 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 import { StyleSheet, View, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 
 // Import screens from src/screens
 import HomeScreen from './src/screens/HomeScreen';
+import CanvasScreen from './src/screens/CanvasScreen';
 
 // Placeholder screens
-const CanvasScreen = () => (
-  <View style={styles.screen}>
-    {/* Drawing/editing canvas will go here */}
-  </View>
-);
-
 const ProfileScreen = () => (
+  
   <View style={styles.screen}>
     {/* User profile content will go here */}
   </View>
@@ -38,13 +39,12 @@ export default function App() {
           initialRouteName="Home"
           screenOptions={({ route }) => ({
             drawerStyle: styles.drawer,
-            drawerType: 'permanent',
-            drawerPosition: 'left',
-            headerShown: false,
+            headerStyle: styles.header,
+            headerTintColor: '#000',
             drawerIcon: ({ focused, color }) => {
               let iconName;
               if (route.name === 'Home') {
-                iconName = focused ? 'book' : 'book-outline';
+                iconName = focused ? 'home' : 'home-outline';
               } else if (route.name === 'Canvas') {
                 iconName = focused ? 'create' : 'create-outline';
               } else if (route.name === 'Profile') {
@@ -52,26 +52,22 @@ export default function App() {
               } else if (route.name === 'Settings') {
                 iconName = focused ? 'settings' : 'settings-outline';
               }
-              return <Ionicons name={iconName} size={20} color={color} />;
+              return <Ionicons name={iconName} size={24} color={color} />;
             },
-            drawerItemStyle: styles.drawerItem,
-            drawerContentContainerStyle: styles.drawerContent,
           })}
         >
           <Drawer.Screen 
             name="Home" 
             component={HomeScreen}
             options={{
-              drawerLabel: 'Home',
-              drawerLabelStyle: styles.drawerLabel,
+              title: 'My Sketchbooks'
             }}
           />
           <Drawer.Screen 
             name="Canvas" 
             component={CanvasScreen}
             options={{
-              drawerLabel: 'Canvas',
-              drawerLabelStyle: styles.drawerLabel,
+              title: 'Canvas Editor'
             }}
           />
           <Drawer.Screen 
@@ -122,5 +118,8 @@ const styles = StyleSheet.create({
   },
   drawerContent: {
     paddingTop: 20,
+  },
+  header: {
+    backgroundColor: '#fff',
   },
 }); 
