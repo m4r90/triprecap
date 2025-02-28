@@ -20,7 +20,7 @@ npm start
 frontend
 
 ```bash
-cd triprecap
+cd triprecap2
 npm start 
 
 # type w to open in web browser

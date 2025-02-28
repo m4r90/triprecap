@@ -1,0 +1,94 @@
+/* HomeScreen.css */
+
+/* Container général */
+.container {
+    padding: 20px;
+    position: relative;
+}
+
+/* Conteneur pour l'avatar de l'utilisateur, son nom et le bouton logout */
+.user-info {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Avatar de l'utilisateur */
+.user-avatar img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Nom de l'utilisateur */
+.user-name {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* Bouton Logout */
+.logout-button {
+    padding: 5px 10px;
+    background-color: #ff4c4c;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.logout-button:hover {
+    background-color: #ff1a1a;
+}
+
+/* Titre de la page */
+.title {
+    font-size: 2rem;
+    text-align: center;
+    margin-top: 60px;
+}
+
+/* Liste des sketchbooks */
+.sketchbook-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.sketchbook-item {
+    background-color: #f4f4f9;
+    padding: 15px;
+    border-radius: 8px;
+    width: 250px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.sketchbook-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.date {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* Bouton pour créer un nouveau sketchbook */
+.new-button {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #007BFF;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.new-button:hover {
+    background-color: #0056b3;
+}
