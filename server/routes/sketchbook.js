@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Sketchbook = require('../models/Sketchbook');
+const mongoose = require('mongoose');
 
 // Debug middleware
 router.use((req, res, next) => {
@@ -186,6 +187,27 @@ router.get('/canvases/recent', async (req, res) => {
         res.json(allCanvases.slice(0, limit));
     } catch (err) {
         console.error('Get error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Find sketchbook by canvas ID
+router.get('/findByCanvas/:canvasId', async (req, res) => {
+    try {
+        console.log('Looking for canvas with ID:', req.params.canvasId);
+        const sketchbook = await Sketchbook.findOne({
+            'canvases._id': req.params.canvasId
+        });
+        
+        if (!sketchbook) {
+            console.log('No sketchbook found for canvas');
+            return res.status(404).json({ error: 'Sketchbook not found' });
+        }
+        
+        console.log('Found sketchbook:', sketchbook.title);
+        res.json(sketchbook);
+    } catch (err) {
+        console.error('Find error:', err);
         res.status(500).json({ error: err.message });
     }
 });

@@ -8,6 +8,14 @@ const elementSchema = new mongoose.Schema({
         x: Number,
         y: Number
     },
+    metadata: {
+        coordinates: {
+            latitude: Number,
+            longitude: Number
+        },
+        timestamp: Date,
+        originalTimestamp: Date
+    },
     style: mongoose.Schema.Types.Mixed
 });
 

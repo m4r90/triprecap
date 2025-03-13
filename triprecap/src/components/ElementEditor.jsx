@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const ElementEditor = ({ element, onUpdate, onPreview, onClose }) => {
+const ElementEditor = ({ element, onUpdate, onPreview, onCancel }) => {
     // Local state to track all changes before saving
     const [localElement, setLocalElement] = useState({...element});
 
@@ -66,8 +66,18 @@ const ElementEditor = ({ element, onUpdate, onPreview, onClose }) => {
     };
 
     const saveChanges = () => {
-        onUpdate(localElement);
-        onClose();
+        if (typeof onUpdate === 'function') {
+            onUpdate(localElement);
+        } else {
+            console.error('Error: onUpdate is not a function', onUpdate);
+        }
+        
+        // Use onCancel instead of onClose
+        if (typeof onCancel === 'function') {
+            onCancel();
+        } else {
+            console.error('Error: onCancel is not a function', onCancel);
+        }
     };
 
     // Get current rotation value from transform property
@@ -306,7 +316,7 @@ const ElementEditor = ({ element, onUpdate, onPreview, onClose }) => {
             {/* Action buttons */}
             <div style={{ display: "flex", justifyContent: "space-between", marginTop: "20px" }}>
                 <button 
-                    onClick={onClose}
+                    onClick={onCancel}
                     style={{
                         padding: "8px 15px",
                         backgroundColor: "#f1f1f1",

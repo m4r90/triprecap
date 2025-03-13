@@ -3,6 +3,7 @@ import DraggableElement from "../components/DraggableElement";
 import ElementEditor from "../components/ElementEditor";
 import "../styles/CanvasScreen.css";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import * as exifr from 'exifr';
 
 // Canvas dimensions
 const CANVAS_WIDTH = 800;
@@ -18,6 +19,8 @@ const CanvasScreen = () => {
     const [newText, setNewText] = useState("");
     const canvasRef = useRef(null);
     const [canvasOffset, setCanvasOffset] = useState({ left: 0, top: 0 });
+    const [canvasTitle, setCanvasTitle] = useState("");
+    const [isSaved, setIsSaved] = useState(false);
 
     // Update canvas offset when component mounts or window resizes
     useEffect(() => {
@@ -45,6 +48,7 @@ const CanvasScreen = () => {
             if (!response.ok) throw new Error("Failed to fetch canvas");
             const canvas = await response.json();
             setElements(canvas.elements || []);
+            setCanvasTitle(canvas.title || "Untitled Canvas");
         } catch (error) {
             console.error('Error fetching canvas:', error);
         }
@@ -99,26 +103,76 @@ const CanvasScreen = () => {
     };
 
     // Function to add image
-    const addImage = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const imageUrl = reader.result;
-                const newElement = {
-                    id: Date.now().toString(),
-                    type: "image",
-                    content: imageUrl,
-                    // Place in center of canvas
-                    position: { 
-                        x: CANVAS_WIDTH / 2 - 50,
-                        y: CANVAS_HEIGHT / 2 - 50
-                    },
-                    style: { width: "100px", height: "100px" },
+    const handleImageUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        console.log('Starting image upload...');
+        
+        // Extract GPS data client-side before uploading
+        let coordinates = null;
+        try {
+            console.log('Attempting to extract EXIF data client-side...');
+            // Use exifr to extract GPS data
+            const gps = await exifr.gps(file);
+            console.log('Client-side GPS extraction result:', gps);
+            
+            if (gps && gps.latitude && gps.longitude) {
+                coordinates = {
+                    latitude: gps.latitude,
+                    longitude: gps.longitude
                 };
-                setElements((prev) => [...prev, newElement]);
+                console.log('Successfully extracted coordinates:', coordinates);
+            } else {
+                console.log('No GPS data found in image');
+            }
+        } catch (error) {
+            console.error('Error extracting EXIF data client-side:', error);
+        }
+
+        const formData = new FormData();
+        formData.append('image', file);
+        
+        // If we extracted coordinates, send them along with the image
+        if (coordinates) {
+            formData.append('coordinates', JSON.stringify(coordinates));
+        }
+
+        try {
+            const response = await fetch('http://localhost:5000/api/upload/image', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const data = await response.json();
+            console.log('Upload response:', data);
+            
+            // Make sure we use the client-extracted coordinates if available
+            const metadata = {
+                ...data.metadata,
+                coordinates: coordinates || data.metadata.coordinates
             };
-            reader.readAsDataURL(file);
+            
+            console.log('Final metadata with coordinates:', metadata);
+
+            const newElement = {
+                id: Date.now().toString(),
+                type: 'image',
+                content: data.imageData,
+                position: { x: 50, y: 50 },
+                metadata: metadata,
+                style: {
+                    width: '200px',
+                    height: '200px',
+                    transform: 'rotate(0deg)',
+                }
+            };
+
+            console.log('New element created:', newElement);
+            setElements(prev => [...prev, newElement]);
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            alert('Failed to upload image');
         }
     };
 
@@ -216,54 +270,93 @@ const CanvasScreen = () => {
         }
     };
 
-    return (
-        <div style={{ display: 'flex', height: '100vh', width: '100%' }}>
-            {/* Left sidebar */}
-            <div style={{ 
-                width: '380px',
-                backgroundColor: '#f5f5f5',
-                padding: '20px',
-                display: 'flex',
-                flexDirection: 'column',
-                borderRight: '1px solid #ddd',
-                overflowY: 'auto'
-            }}>
-                {/* Header with Back and Save buttons */}
-                <div style={{ 
-                    marginBottom: '20px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                }}>
-                    <Link to="/" style={{
-                        display: 'inline-block',
-                        padding: '8px 15px',
-                        backgroundColor: '#4285F4',
-                        color: 'white',
-                        textDecoration: 'none',
-                        borderRadius: '4px'
-                    }}>Back</Link>
-                    
-                    <button
-                        onClick={handleSave}
-                        style={{
-                            padding: '8px 15px',
-                            backgroundColor: '#4CAF50',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        Save
-                    </button>
-                </div>
+    // Add this function to format coordinates for display
+    const formatCoordinates = (coordinates) => {
+        if (!coordinates || !coordinates.latitude || !coordinates.longitude) {
+            return 'No location data';
+        }
+        
+        const { latitude, longitude } = coordinates;
+        // Format to 6 decimal places
+        return `Lat: ${latitude.toFixed(6)}, Long: ${longitude.toFixed(6)}`;
+    };
 
-                {/* Tool controls */}
-                <div style={{ marginBottom: '20px' }}>
-                    <h3>Add Elements</h3>
-                    
-                    <div style={{ marginBottom: '15px' }}>
+    // Function to save the canvas
+    const saveCanvas = async () => {
+        try {
+            // Create a deep copy of elements
+            const elementsCopy = JSON.parse(JSON.stringify(elements));
+            
+            // Find any image with coordinates
+            const imageWithCoords = elementsCopy.find(el => 
+                el.type === 'image' && 
+                el.metadata?.coordinates?.latitude && 
+                el.metadata?.coordinates?.longitude
+            );
+            
+            // Save canvas first
+            const response = await fetch('http://localhost:5000/api/canvas', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: canvasTitle,
+                    elements: elementsCopy
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to save canvas');
+            }
+
+            const savedCanvas = await response.json();
+            console.log('Canvas saved successfully:', savedCanvas);
+            setCanvasId(savedCanvas._id);
+            setIsSaved(true);
+            
+            // Now save coordinates separately if we have them
+            if (imageWithCoords && imageWithCoords.metadata?.coordinates) {
+                const { latitude, longitude } = imageWithCoords.metadata.coordinates;
+                
+                console.log(`Saving coordinates separately: ${latitude}, ${longitude}`);
+                
+                const coordResponse = await fetch('http://localhost:5000/api/coordinates', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        canvasId: savedCanvas._id,
+                        latitude,
+                        longitude
+                    }),
+                });
+                
+                if (coordResponse.ok) {
+                    console.log('Coordinates saved separately');
+                } else {
+                    console.error('Failed to save coordinates separately');
+                }
+            }
+            
+        } catch (error) {
+            console.error('Error saving canvas:', error);
+            alert('Failed to save canvas: ' + error.message);
+        }
+    };
+
+    return (
+        <div className="canvas-screen">
+            <div className="top-bar">
+                <Link to="/" style={buttonStyle}>Back</Link>
+                <button onClick={handleSave} style={buttonStyle}>Save</button>
+            </div>
+
+            <div className="main-content">
+                <div className="sidebar">
+                    <div className="tools-section">
+                        <h3>Add Text</h3>
                         <input
                             type="text"
                             value={newText}
@@ -271,85 +364,86 @@ const CanvasScreen = () => {
                             placeholder="Enter text"
                             style={inputStyle}
                         />
-                        <button onClick={addText} style={buttonStyle}>
-                            Add Text
-                        </button>
-                    </div>
+                        <button onClick={addText} style={buttonStyle}>Add Text</button>
 
-                    <div style={{ marginBottom: '15px' }}>
+                        <h3>Add Image</h3>
                         <label htmlFor="image-upload" style={buttonStyle}>
-                            Add Image
+                            Upload Image
                         </label>
                         <input
                             id="image-upload"
                             type="file"
-                            accept="image/*"
-                            onChange={addImage}
+                            onChange={handleImageUpload}
+                            accept="image/*,.heic,.heif"
                             style={{ display: "none" }}
                         />
+                        <small style={{ color: '#666', marginTop: '5px' }}>
+                            Supported formats: JPG, PNG, HEIC, and other image formats
+                        </small>
                     </div>
-                </div>
 
-                {/* Element editor */}
-                {editingElement && (
-                    <div>
-                        <ElementEditor 
-                            element={editingElement} 
+                    {editingElement && (
+                        <ElementEditor
+                            element={editingElement}
                             onUpdate={updateElement}
                             onPreview={previewChanges}
-                            onClose={cancelEdit}
+                            onCancel={cancelEdit}
                         />
-                    </div>
-                )}
-            </div>
+                    )}
+                </div>
 
-            {/* Canvas container with centering */}
-            <div style={{ 
-                flex: 1,
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: '#e9e9e9',
-                padding: '20px',
-                overflow: 'auto'
-            }}>
-                {/* Actual canvas with fixed dimensions */}
-                <div 
-                    ref={canvasRef}
-                    style={{ 
-                        width: `${CANVAS_WIDTH}px`,
-                        height: `${CANVAS_HEIGHT}px`,
-                        backgroundColor: 'white',
-                        position: 'relative',
-                        boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-                        border: '1px solid #ddd',
-                        overflow: 'hidden' // Prevent elements from visually overflowing
-                    }}
-                >
-                    {elements.map((element) => {
-                        // If this element is being previewed, show the preview version instead
-                        const displayElement = 
-                            (previewElement && previewElement.id === element.id) 
-                                ? previewElement 
-                                : element;
-                                
-                        return (
-                            <DraggableElement
-                                key={element.id}
-                                element={displayElement}
-                                onUpdate={updateElement}
-                                onDelete={() => deleteElement(element.id)}
-                                onSelect={() => setSelectedElement(element)}
-                                onEdit={handleEdit}
-                                isSelected={selectedElement?.id === element.id}
-                                isEditing={editingElement?.id === element.id}
-                                canvasBounds={{
-                                    width: CANVAS_WIDTH,
-                                    height: CANVAS_HEIGHT
-                                }}
-                            />
-                        );
-                    })}
+                <div className="canvas-container">
+                    <div className="canvas-info">
+                        {elements.map(element => 
+                            element.type === 'image' && element.metadata?.coordinates && (
+                                <div key={element.id} style={{
+                                    padding: '10px',
+                                    margin: '5px',
+                                    backgroundColor: '#f0f0f0',
+                                    borderRadius: '4px'
+                                }}>
+                                    <p>Image Location:</p>
+                                    <p>{formatCoordinates(element.metadata.coordinates)}</p>
+                                </div>
+                            )
+                        )}
+                    </div>
+                    <div
+                        ref={canvasRef}
+                        style={{
+                            width: `${CANVAS_WIDTH}px`,
+                            height: `${CANVAS_HEIGHT}px`,
+                            position: 'relative',
+                            backgroundColor: 'white',
+                            boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+                            border: '1px solid #ddd'
+                        }}
+                    >
+                        {elements.map((element) => {
+                            // If this element is being previewed, show the preview version instead
+                            const displayElement = 
+                                (previewElement && previewElement.id === element.id) 
+                                    ? previewElement 
+                                    : element;
+                                    
+                            return (
+                                <DraggableElement
+                                    key={element.id}
+                                    element={displayElement}
+                                    onUpdate={updateElement}
+                                    onDelete={() => deleteElement(element.id)}
+                                    onSelect={() => setSelectedElement(element)}
+                                    onEdit={handleEdit}
+                                    isSelected={selectedElement?.id === element.id}
+                                    isEditing={editingElement?.id === element.id}
+                                    canvasBounds={{
+                                        width: CANVAS_WIDTH,
+                                        height: CANVAS_HEIGHT
+                                    }}
+                                />
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
         </div>

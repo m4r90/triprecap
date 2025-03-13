@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import "../styles/SketchbookPage.css";
+import SketchbookMap from "../components/SketchbookMap";
 
 const SketchbookPage = () => {
     const { id } = useParams();
@@ -104,6 +105,8 @@ const SketchbookPage = () => {
             </div>
 
             {error && <p className="error">{error}</p>}
+
+            {sketchbook && <SketchbookMap canvases={sketchbook.canvases} />}
 
             <div className="canvas-grid">
                 {sketchbook?.canvases.map(canvas => (

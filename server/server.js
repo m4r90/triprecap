@@ -27,10 +27,12 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/triprecap
 // Import routes
 const sketchbookRoutes = require('./routes/sketchbook');
 const userRoutes = require('./routes/users');
+const uploadRoutes = require('./routes/upload');
 
 // Use routes with explicit paths
 app.use('/api/sketchbooks', sketchbookRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Test route
 app.get('/test', (req, res) => {

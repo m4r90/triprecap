@@ -1,0 +1,82 @@
+.mapboxgl-popup {
+    max-width: 250px;
+}
+
+.mapboxgl-popup-content {
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+}
+
+.mapboxgl-popup-content h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #333;
+    font-size: 16px;
+}
+
+.mapboxgl-popup-content p {
+    margin: 5px 0;
+    color: #666;
+    font-size: 14px;
+}
+
+/* Large fixed-size marker that doesn't change with zoom */
+.large-fixed-marker {
+    width: 30px;
+    height: 30px;
+    background-color: rgba(255, 0, 0, 0.8);
+    border: 3px solid white;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    transform-origin: center;
+    /* The important part - make this a size-invariant marker */
+    will-change: transform;
+}
+
+/* Fallback marker for testing (blue instead of red) */
+
+.large-fixed-marker.fallback {
+    background-color: rgba(0, 0, 255, 0.8);
+}
+
+/* Pulse animation to make the marker more noticeable */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.large-fixed-marker:hover {
+    animation: pulse 1.5s infinite;
+}
+
+/* Create a pulsing effect around the marker */
+.large-fixed-marker::after {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    right: -5px;
+    bottom: -5px;
+    border-radius: 50%;
+    background-color: rgba(255, 0, 0, 0.3);
+    z-index: -1;
+    animation: pulse 2s infinite;
+}
+
+.large-fixed-marker.fallback::after {
+    background-color: rgba(0, 0, 255, 0.3);
+}

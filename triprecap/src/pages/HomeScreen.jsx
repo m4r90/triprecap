@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../styles/HomeScreen.css";
+import SketchbookMap from "../components/SketchbookMap";
 
 const HomeScreen = () => {
     const [sketchbooks, setSketchbooks] = useState([]);
@@ -9,6 +10,7 @@ const HomeScreen = () => {
     const [user, setUser] = useState(null); // Pour stocker l'utilisateur
     const navigate = useNavigate();
     const [deleteSketchbookId, setDeleteSketchbookId] = useState(null);
+    const [showMap, setShowMap] = useState(null);
 
     useEffect(() => {
         fetchUser();
@@ -114,6 +116,10 @@ const HomeScreen = () => {
         }
     };
 
+    const handleShowMap = (sketchbook) => {
+        setShowMap(sketchbook);
+    };
+
     return (
         <div className="container">
             <div className="user-info">
@@ -148,12 +154,23 @@ const HomeScreen = () => {
                                     <p>Created: {formatDate(sketchbook.createdAt)}</p>
                                     <p>Last modified: {formatDate(sketchbook.lastModified)}</p>
                                 </Link>
-                                <button 
-                                    className="delete-button"
-                                    onClick={() => setDeleteSketchbookId(sketchbook._id)}
-                                >
-                                    Delete
-                                </button>
+                                <div className="sketchbook-actions">
+                                    <button 
+                                        className="map-button"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            handleShowMap(sketchbook);
+                                        }}
+                                    >
+                                        📍 View Map
+                                    </button>
+                                    <button 
+                                        className="delete-button"
+                                        onClick={() => setDeleteSketchbookId(sketchbook._id)}
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -176,6 +193,23 @@ const HomeScreen = () => {
                     </div>
                 </div>
             </div>
+
+            {showMap && (
+                <div className="modal-overlay">
+                    <div className="modal map-modal">
+                        <h2>{showMap.title} - Photo Locations</h2>
+                        <SketchbookMap canvases={showMap.canvases} />
+                        <div className="modal-buttons">
+                            <button 
+                                className="close-button"
+                                onClick={() => setShowMap(null)}
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {deleteSketchbookId && (
                 <div className="modal-overlay">

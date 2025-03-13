@@ -106,3 +106,26 @@
     font-size: 0.9em;
     color: #666;
 }
+.mapboxgl-map {
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.mapboxgl-popup {
+    max-width: 200px;
+}
+
+.mapboxgl-popup-content {
+    padding: 15px;
+}
+
+.mapboxgl-popup-content h3 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+}
+
+.mapboxgl-popup-content p {
+    margin: 5px 0;
+    font-size: 14px;
+    color: #666;
+}
