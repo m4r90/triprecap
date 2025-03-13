@@ -3,9 +3,90 @@
 /* Container général */
 .container {
     padding: 20px;
+    max-width: 1400px;
+        margin: 0 auto;
+    }
+    
+    .content-section {
+        display: flex;
+        flex-direction: column;
+        gap: 40px;
+    }
+    
+    .sketchbooks-section {
+        width: 100%;
+    }
+    
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    .sketchbook-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+    }
+    
+    .sketchbook-card {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        height: 300px;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .sketchbook-content {
+        padding: 20px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    
+    .recent-canvases-section {
+        width: 100%;
+    }
+    
+    .canvas-grid {
+        display: flex;
+        gap: 20px;
+        overflow-x: auto;
+        padding: 10px 0;
+    }
+    
+    .canvas-card {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        min-width: 200px;
+        width: 200px;
+        height: 280px;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
     position: relative;
 }
 
+.canvas-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, transparent 50%, #e0e0e0 51%);
+    border-radius: 0 0 8px 0;
+}
+
+.delete-button {
+    margin: 10px;
+    padding: 8px;
+}
 /* Conteneur pour l'avatar de l'utilisateur, son nom et le bouton logout */
 .user-info {
     position: absolute;

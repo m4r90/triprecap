@@ -4,6 +4,8 @@ import HomeScreen from "./pages/HomeScreen";
 import CanvasScreen from "./pages/CanvasScreen";
 import LoginPage from "./pages/LoginPage";  // Page de connexion
 import RegisterPage from "./pages/RegisterPage";  // Page d'inscription
+import SketchbookPage from "./pages/SketchbookPage";
+import './styles/common.css';
 
 const App = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -32,15 +34,19 @@ const App = () => {
                 <Route path="/home" element={isAuthenticated ? <HomeScreen onLogout={handleLogout} /> : <Navigate to="/login" />} />
 
                 {/* Page de canvas, accessible après login */}
-                <Route path="/canvas" element={isAuthenticated ? <CanvasScreen /> : <Navigate to="/login" />} />
+                <Route path="/canvas/:canvasId?" element={isAuthenticated ? <CanvasScreen /> : <Navigate to="/login" />} />
 
                 {/* Page de connexion */}
                 <Route path="/login" element={<LoginPage onLogin={() => setIsAuthenticated(true)} />} />
 
                 {/* Page d'inscription */}
                 <Route path="/register" element={<RegisterPage />} />
+
+                {/* Page de sketchbook, accessible après login */}
+                <Route path="/sketchbook/:id" element={isAuthenticated ? <SketchbookPage /> : <Navigate to="/login" />} />
             </Routes>
         </Router>
+
     );
 };
 

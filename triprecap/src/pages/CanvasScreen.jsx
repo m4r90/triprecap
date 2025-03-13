@@ -2,13 +2,15 @@ import React, { useState, useRef, useEffect } from "react";
 import DraggableElement from "../components/DraggableElement";
 import ElementEditor from "../components/ElementEditor";
 import "../styles/CanvasScreen.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 // Canvas dimensions
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
 
 const CanvasScreen = () => {
+    const { canvasId } = useParams();
+    const navigate = useNavigate();
     const [elements, setElements] = useState([]);
     const [selectedElement, setSelectedElement] = useState(null);
     const [editingElement, setEditingElement] = useState(null);
@@ -30,6 +32,23 @@ const CanvasScreen = () => {
         window.addEventListener('resize', updateCanvasOffset);
         return () => window.removeEventListener('resize', updateCanvasOffset);
     }, []);
+
+    useEffect(() => {
+        if (canvasId) {
+            fetchCanvas();
+        }
+    }, [canvasId]);
+
+    const fetchCanvas = async () => {
+        try {
+            const response = await fetch(`http://localhost:5000/api/sketchbooks/canvas/${canvasId}`);
+            if (!response.ok) throw new Error("Failed to fetch canvas");
+            const canvas = await response.json();
+            setElements(canvas.elements || []);
+        } catch (error) {
+            console.error('Error fetching canvas:', error);
+        }
+    };
 
     // Common button style for consistency
     const buttonStyle = {
@@ -160,6 +179,43 @@ const CanvasScreen = () => {
         setPreviewElement(null);
     };
 
+    const handleSave = async () => {
+        try {
+            const canvasData = {
+                elements: elements.map(el => ({
+                    id: el.id,
+                    type: el.type,
+                    content: el.content,
+                    position: el.position,
+                    style: el.style
+                }))
+            };
+
+            const url = canvasId 
+                ? `http://localhost:5000/api/sketchbooks/canvas/${canvasId}`
+                : `http://localhost:5000/api/sketchbooks/canvas`;
+
+            const response = await fetch(url, {
+                method: canvasId ? 'PUT' : 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(canvasData)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Server responded with ${response.status}: ${errorText}`);
+            }
+
+            const data = await response.json();
+            navigate(-1); // Go back to previous page
+        } catch (error) {
+            console.error('Error saving canvas:', error);
+            alert('Error saving canvas: ' + error.message);
+        }
+    };
+
     return (
         <div style={{ display: 'flex', height: '100vh', width: '100%' }}>
             {/* Left sidebar */}
@@ -172,8 +228,13 @@ const CanvasScreen = () => {
                 borderRight: '1px solid #ddd',
                 overflowY: 'auto'
             }}>
-                {/* Back button */}
-                <div style={{ marginBottom: '20px' }}>
+                {/* Header with Back and Save buttons */}
+                <div style={{ 
+                    marginBottom: '20px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                }}>
                     <Link to="/" style={{
                         display: 'inline-block',
                         padding: '8px 15px',
@@ -182,6 +243,20 @@ const CanvasScreen = () => {
                         textDecoration: 'none',
                         borderRadius: '4px'
                     }}>Back</Link>
+                    
+                    <button
+                        onClick={handleSave}
+                        style={{
+                            padding: '8px 15px',
+                            backgroundColor: '#4CAF50',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        Save
+                    </button>
                 </div>
 
                 {/* Tool controls */}
