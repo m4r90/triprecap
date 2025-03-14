@@ -1,0 +1,136 @@
+/* Modern Element Editor Styles */
+
+.element-editor {
+    background-color: var(--background);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    width: 100%;
+}
+
+.element-editor h3 {
+    color: var(--text-primary);
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.editor-section {
+    margin-bottom: 1.5rem;
+}
+
+.editor-section-title {
+    font-weight: 500;
+    margin-bottom: 0.8rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.input-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.input-group input[type="number"] {
+    width: 70px;
+}
+
+.style-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.style-btn {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--secondary);
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.style-btn:hover {
+    background-color: var(--accent);
+    border-color: var(--primary);
+}
+
+.style-btn.active {
+    background-color: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.slider-container {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.slider-container input[type="range"] {
+    flex: 1;
+}
+
+.slider-value {
+    width: 40px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.color-picker {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.editor-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-light);
+}
+
+.preview-note {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-top: 0.5rem;
+}
+
+.image-resize-btns {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.image-resize-btns button {
+    padding: 0.4rem 0.8rem;
+    background-color: var(--secondary);
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.image-resize-btns button:hover {
+    background-color: var(--accent);
+}

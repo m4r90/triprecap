@@ -5,26 +5,28 @@ import SketchbookMap from "../components/SketchbookMap";
 
 const HomeScreen = () => {
     const [sketchbooks, setSketchbooks] = useState([]);
+    const [canvases, setCanvases] = useState([]);
     const [recentCanvases, setRecentCanvases] = useState([]);
     const [error, setError] = useState(null);
-    const [user, setUser] = useState(null); // Pour stocker l'utilisateur
+    const [user, setUser] = useState(null);
     const navigate = useNavigate();
     const [deleteSketchbookId, setDeleteSketchbookId] = useState(null);
     const [showMap, setShowMap] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         fetchUser();
         fetchSketchbooks();
+        fetchCanvases();
         fetchRecentCanvases();
     }, []);
 
     const fetchUser = () => {
-        // Récupérer les informations de l'utilisateur depuis localStorage
-        const loggedInUser = JSON.parse(localStorage.getItem("user")); // Récupère l'utilisateur
+        const loggedInUser = JSON.parse(localStorage.getItem("user"));
         if (loggedInUser) {
             setUser(loggedInUser);
         } else {
-            navigate("/login"); // Si pas d'utilisateur, rediriger vers la page de login
+            navigate("/login");
         }
     };
 
@@ -41,20 +43,61 @@ const HomeScreen = () => {
 
     const fetchRecentCanvases = async () => {
         try {
-            const response = await fetch("http://localhost:5000/api/canvases/recent");
+            const response = await fetch("http://localhost:5000/api/sketchbooks/canvases/recent?limit=4");
             if (!response.ok) throw new Error("Failed to fetch recent canvases");
             const data = await response.json();
             setRecentCanvases(data);
         } catch (err) {
-            setError(err.message);
+            console.error('Error fetching recent canvases:', err);
+        }
+    };
+
+    const fetchCanvases = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch('http://localhost:5000/api/sketchbooks');
+            
+            if (!response.ok) {
+                throw new Error('Failed to fetch canvases');
+            }
+            
+            const sketchbooks = await response.json();
+            
+            let allCanvases = [];
+            sketchbooks.forEach(sketchbook => {
+                if (sketchbook.canvases && sketchbook.canvases.length > 0) {
+                    sketchbook.canvases.forEach(canvas => {
+                        allCanvases.push({
+                            ...canvas,
+                            sketchbookId: sketchbook._id
+                        });
+                    });
+                }
+            });
+            
+            setCanvases(allCanvases);
+            
+            if (recentCanvases.length === 0) {
+                const sortedCanvases = [...allCanvases].sort((a, b) => {
+                    const dateA = a.lastModified ? new Date(a.lastModified) : new Date(a.createdAt || 0);
+                    const dateB = b.lastModified ? new Date(b.lastModified) : new Date(b.createdAt || 0);
+                    return dateB - dateA;
+                });
+                
+                setRecentCanvases(sortedCanvases.slice(0, 4));
+            }
+            setLoading(false);
+        } catch (error) {
+            console.error('Error fetching canvases:', error);
+            setError(error.message);
+            setLoading(false);
         }
     };
 
     const handleLogout = () => {
-        // Supprimer le token et l'utilisateur du localStorage
         localStorage.removeItem("authToken");
         localStorage.removeItem("user");
-        navigate("/login"); // Rediriger vers la page de login après déconnexion
+        navigate("/login");
     };
 
     const createNewSketchbook = async () => {
@@ -75,13 +118,15 @@ const HomeScreen = () => {
     };
 
     const formatDate = (date) => {
-        return new Date(date).toLocaleString('en-US', {
+        if (!date) return 'Unknown date';
+        const formattedDate = new Date(date).toLocaleString('en-US', {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
             hour: '2-digit',
             minute: '2-digit'
         });
+        return formattedDate;
     };
 
     const handleDeleteSketchbook = async (id) => {
@@ -105,7 +150,6 @@ const HomeScreen = () => {
                 }
             }
 
-            // Remove the deleted sketchbook from state
             setSketchbooks(prevSketchbooks => 
                 prevSketchbooks.filter(book => book._id !== id)
             );
@@ -154,19 +198,23 @@ const HomeScreen = () => {
                                     <p>Created: {formatDate(sketchbook.createdAt)}</p>
                                     <p>Last modified: {formatDate(sketchbook.lastModified)}</p>
                                 </Link>
+
                                 <div className="sketchbook-actions">
                                     <button 
-                                        className="map-button"
                                         onClick={(e) => {
                                             e.preventDefault();
                                             handleShowMap(sketchbook);
-                                        }}
+                                        }} 
+                                        className="map-button"
                                     >
-                                        📍 View Map
+                                        View Map
                                     </button>
                                     <button 
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            setDeleteSketchbookId(sketchbook._id);
+                                        }}
                                         className="delete-button"
-                                        onClick={() => setDeleteSketchbookId(sketchbook._id)}
                                     >
                                         Delete
                                     </button>
@@ -185,9 +233,31 @@ const HomeScreen = () => {
                                 key={canvas._id} 
                                 className="canvas-card"
                             >
-                                <h3>{canvas.title}</h3>
-                                <p>Created: {formatDate(canvas.createdAt)}</p>
-                                <p>Last edited: {formatDate(canvas.lastModified)}</p>
+                                <h3>{canvas.title || "Untitled Canvas"}</h3>
+                                <div className="canvas-preview">
+                                    {canvas.elements && canvas.elements.length > 0 && (
+                                        <div className="preview-content">
+                                            {canvas.elements.some(el => el.type === 'image') ? (
+                                                <div className="has-image">
+                                                    <i className="icon-image">🖼️</i>
+                                                </div>
+                                            ) : (
+                                                <div className="no-image">
+                                                    <i className="icon-text">📝</i>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="canvas-meta">
+                                    <span className="elements-count">
+                                        <i className="icon-elements">📋</i>
+                                        {canvas.elements ? canvas.elements.length : 0} elements
+                                    </span>
+                                </div>
+                                <time className="canvas-date">
+                                    Edited: {formatDate(canvas.lastModified || canvas.createdAt)}
+                                </time>
                             </Link>
                         ))}
                     </div>
@@ -213,21 +283,21 @@ const HomeScreen = () => {
 
             {deleteSketchbookId && (
                 <div className="modal-overlay">
-                    <div className="modal">
-                        <h2>Confirm Delete</h2>
+                    <div className="modal delete-modal">
+                        <h2>Confirm Deletion</h2>
                         <p>Are you sure you want to delete this sketchbook? This action cannot be undone.</p>
                         <div className="modal-buttons">
-                            <button 
-                                className="cancel-button"
-                                onClick={() => setDeleteSketchbookId(null)}
-                            >
-                                Cancel
-                            </button>
                             <button 
                                 className="delete-confirm-button"
                                 onClick={() => handleDeleteSketchbook(deleteSketchbookId)}
                             >
                                 Delete
+                            </button>
+                            <button 
+                                className="cancel-button"
+                                onClick={() => setDeleteSketchbookId(null)}
+                            >
+                                Cancel
                             </button>
                         </div>
                     </div>
